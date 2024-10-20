@@ -16,26 +16,22 @@
             color-scheme: var(--tg-color-scheme);
         }
 
-        /* Energy icon and counter at the top center */
+        /* Energy icons displayed as ⚡️ symbols at the top center */
         .energy-container {
             text-align: center;
             margin-top: 10px;
-            font-size: 18px;
-            color: var(--tg-theme-link-color);
-        }
-
-        .energy-icon {
             font-size: 20px;
-            margin-right: 5px;
+            color: var(--tg-theme-link-color);
         }
 
         .cooldown {
             font-size: 12px;
             color: var(--tg-theme-text-color);
+            margin-top: 5px;
         }
 
         main {
-            height: calc(100vh - 60px);
+            height: calc(100vh - 60px); /* Adjust for the energy container height */
             padding-top: 20px;
             display: flex;
             flex-direction: column;
@@ -90,10 +86,10 @@
 
 <body>
 
-    <!-- Energy ⚡️ at the top center -->
+    <!-- Energy ⚡️ icons at the top center -->
     <div class="energy-container">
-        <span class="energy-icon">⚡️</span><span id="energy-counter">10</span>
-        <div class="cooldown" id="cooldown">Next refill in: 00:00</div>
+        <div id="energy-display">⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️</div>
+        <div class="cooldown" id="cooldown" style="display: none;">Next refill in: 00:00</div>
     </div>
 
     <main id="content">
@@ -119,7 +115,7 @@
 
         const MAX_ENERGY = 10;
         const REFILL_TIME = 15 * 60 * 1000; 
-        const energyCounter = document.getElementById('energy-counter');
+        const energyDisplay = document.getElementById('energy-display');
         const cooldown = document.getElementById('cooldown');
 
         function updateEnergy() {
@@ -138,15 +134,21 @@
                 lastRefill = now - (timePassed % REFILL_TIME);
             }
 
-            // Calculate next refill time
-            const nextRefill = REFILL_TIME - (now - lastRefill);
-            const minutes = Math.floor(nextRefill / 60000);
-            const seconds = Math.floor((nextRefill % 60000) / 1000);
+            // Display energy as ⚡️ icons
+            energyDisplay.textContent = '⚡️'.repeat(energy);
 
-            cooldown.textContent = `Next refill in: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            // Hide cooldown if energy is full
+            if (energy === MAX_ENERGY) {
+                cooldown.style.display = 'none';
+            } else {
+                const nextRefill = REFILL_TIME - (now - lastRefill);
+                const minutes = Math.floor(nextRefill / 60000);
+                const seconds = Math.floor((nextRefill % 60000) / 1000);
+                cooldown.textContent = `Next refill in: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                cooldown.style.display = 'block';
+            }
             
-            // Update energy display and save to localStorage
-            energyCounter.textContent = energy;
+            // Update localStorage
             localStorage.setItem('energy', energy);
             localStorage.setItem('lastRefill', lastRefill);
         }
