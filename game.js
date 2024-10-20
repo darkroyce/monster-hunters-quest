@@ -291,65 +291,61 @@ startCombat: function(monsterName) {
         `;
     };
 
-        this.playerAttack = () => {
-            const isCritical = Math.random() < CRIT_CHANCE;
-            const damageMultiplier = isCritical ? CRIT_MULTIPLIER : 1;
-            const playerDamage = playerAttack * damageMultiplier;
-            monsterHp -= playerDamage;
+    this.playerAttack = () => {
+        const isCritical = Math.random() < CRIT_CHANCE;
+        const damageMultiplier = isCritical ? CRIT_MULTIPLIER : 1;
+        const playerDamage = Math.floor(playerAttack * damageMultiplier);
+        monsterHp = Math.max(0, monsterHp - playerDamage);
 
-            let attackMessage = `You hit the ${monsterName} for ${playerDamage} damage!`;
-            if (isCritical) {
-                attackMessage += " Critical hit!";
-            }
+        let attackMessage = `You hit the ${monsterName} for ${playerDamage} damage!`;
+        if (isCritical) {
+            attackMessage += " Critical hit!";
+        }
+
+        if (monsterHp <= 0) {
+            const xpGained = 10 + (areaLevel * 5);
+            const goldGained = Math.floor(Math.random() * 10) + (areaLevel * 5);
+            gameState.player.xp += xpGained;
+            gameState.player.gold += goldGained;
             tg.showPopup({
-                title: 'Attack',
-                message: attackMessage,
+                title: 'Victory!',
+                message: `${attackMessage}\nYou defeated the ${monsterName}! You gained ${xpGained} XP and ${goldGained} gold.`,
                 buttons: [{ type: 'ok' }]
             });
+            this.checkLevelUp();
+            this.updateUI();
+            return;
+        }
 
-            if (monsterHp <= 0) {
-                const xpGained = 10 + (areaLevel * 5);
-                const goldGained = Math.floor(Math.random() * 10) + (areaLevel * 5);
-                gameState.player.xp += xpGained;
-                gameState.player.gold += goldGained;
-                tg.showPopup({
-                    title: 'Victory!',
-                    message: `You defeated the ${monsterName}! You gained ${xpGained} XP and ${goldGained} gold.`,
-                    buttons: [{ type: 'ok' }]
-                });
-                this.checkLevelUp();
-                this.updateUI();
-                return;
-            }
+        // Monster's turn
+        const monsterIsCritical = Math.random() < CRIT_CHANCE;
+        const monsterDamageMultiplier = monsterIsCritical ? CRIT_MULTIPLIER : 1;
+        const monsterDamage = Math.floor(monsterAttack * monsterDamageMultiplier);
+        gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
 
-            // Monster's turn
-            const monsterIsCritical = Math.random() < CRIT_CHANCE;
-            const monsterDamageMultiplier = monsterIsCritical ? CRIT_MULTIPLIER : 1;
-            const monsterDamage = monsterAttack * monsterDamageMultiplier;
-            gameState.player.hp -= monsterDamage;
+        let monsterAttackMessage = `The ${monsterName} hit you for ${monsterDamage} damage!`;
+        if (monsterIsCritical) {
+            monsterAttackMessage += " Critical hit!";
+        }
 
-            let monsterAttackMessage = `The ${monsterName} hit you for ${monsterDamage} damage!`;
-            if (monsterIsCritical) {
-                monsterAttackMessage += " Critical hit!";
-            }
+        tg.showPopup({
+            title: 'Combat Round',
+            message: `${attackMessage}\n${monsterAttackMessage}`,
+            buttons: [{ type: 'ok' }]
+        });
+
+        if (gameState.player.hp <= 0) {
             tg.showPopup({
-                title: 'Monster Attack',
-                message: monsterAttackMessage,
+                title: 'Game Over',
+                message: "You have been defeated!",
                 buttons: [{ type: 'ok' }]
             });
+            this.init();
+            return;
+        }
 
-            if (gameState.player.hp <= 0) {
-                tg.showPopup({
-                    title: 'Game Over',
-                    message: "You have been defeated!",
-                    buttons: [{ type: 'ok' }]
-                });
-                this.init();
-                return;
-            }
-
-            updateCombatUI();
-        };
+        updateCombatUI();
+    };
 
         this.useHealthPotion = () => {
             if (gameState.player.inventory.healthPotion > 0) {
