@@ -1,7 +1,56 @@
-
 <div class="content-container">
     <h1>Map</h1>
-    <div class="map-placeholder">
-        <p>Map and your location will be shown here.</p>
-    </div>
+    <div class="map-grid" id="map-grid"></div>
 </div>
+
+<style>
+    .map-grid {
+        display: grid;
+        grid-template-columns: repeat(20, 20px);
+        grid-template-rows: repeat(20, 20px);
+        gap: 2px;
+        margin-bottom: 10px;
+    }
+
+    .map-tile {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #ccc;
+    }
+
+    .city { background-color: grey; }
+    .forest { background-color: green; }
+    .lake { background-color: blue; }
+    .field { background-color: yellow; }
+    .current { border: 2px solid red; }
+</style>
+
+<script>
+    const mapSize = 20;
+    let playerPosition = { x: Math.floor(mapSize / 2), y: Math.floor(mapSize / 2) };
+
+    function generateMap() {
+        const mapGrid = document.getElementById('map-grid');
+        mapGrid.innerHTML = ''; // Clear the map
+
+        for (let i = 0; i < mapSize; i++) {
+            for (let j = 0; j < mapSize; j++) {
+                const tile = document.createElement('div');
+                tile.classList.add('map-tile');
+
+                // Fetch the current tile type
+                const tileType = localStorage.getItem('currentTileType') || 'city';
+                tile.classList.add(tileType);
+
+                if (i === playerPosition.y && j === playerPosition.x) {
+                    tile.classList.add('current'); // Highlight the current position
+                }
+
+                mapGrid.appendChild(tile);
+            }
+        }
+    }
+
+    // Generate the map when this tab is loaded
+    generateMap();
+</script>
