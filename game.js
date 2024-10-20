@@ -1,5 +1,11 @@
 // Initialize Telegram WebApp
-const tg = window.Telegram.WebApp;
+let tg;
+try {
+    tg = window.Telegram.WebApp;
+} catch (error) {
+    console.error('Failed to initialize Telegram WebApp:', error);
+    document.getElementById('error-display').textContent = 'Failed to initialize Telegram WebApp. Please make sure you're opening this in Telegram.';
+}
 
 // Constants
 const CRIT_CHANCE = 0.2;
@@ -68,61 +74,69 @@ const shopItems = {
 // Game functions
 const game = {
     init: function() {
-    tg.ready();
-    tg.setHeaderColor('#4CAF50');
+        try {
+            if (!tg) {
+                throw new Error('Telegram WebApp not initialized');
+            }
+            tg.ready();
+            tg.setHeaderColor('#4CAF50');
 
-    // Check if the user has already connected their account
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        // User is already connected, proceed to load or start the game
-        this.loadGame().then(() => {
-            this.startGame();
-        });
-    } else {
-        // User is not connected, show the connection prompt
-        tg.showPopup({
-            title: 'Connect Telegram Account',
-            message: 'Please connect your Telegram account to play the game.',
-            buttons: [
-                {text: 'Connect', type: 'ok'},
-                {text: 'Cancel', type: 'close'}
-            ]
-        }, (buttonId) => {
-            if (buttonId === 'ok') {
-                // User clicked "Connect", request access
-                tg.requestWriteAccess((result) => {
-                    if (result) {
-                        // Access granted, now we can load or start the game
-                        this.loadGame().then(() => {
-                            this.startGame();
-                        });
-                    } else {
-                        // Access denied
-                        tg.showAlert('Failed to connect Telegram account. Please try again.');
-                    }
+            // Check if the user has already connected their account
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                // User is already connected, proceed to load or start the game
+                this.loadGame().then(() => {
+                    this.startGame();
                 });
             } else {
-                // User clicked "Cancel"
-                tg.showAlert('You need to connect your Telegram account to play the game.');
-                tg.close();
+                // User is not connected, show the connection prompt
+                tg.showPopup({
+                    title: 'Connect Telegram Account',
+                    message: 'Please connect your Telegram account to play the game.',
+                    buttons: [
+                        {text: 'Connect', type: 'ok'},
+                        {text: 'Cancel', type: 'close'}
+                    ]
+                }, (buttonId) => {
+                    if (buttonId === 'ok') {
+                        // User clicked "Connect", request access
+                        tg.requestWriteAccess((result) => {
+                            if (result) {
+                                // Access granted, now we can load or start the game
+                                this.loadGame().then(() => {
+                                    this.startGame();
+                                });
+                            } else {
+                                // Access denied
+                                tg.showAlert('Failed to connect Telegram account. Please try again.');
+                            }
+                        });
+                    } else {
+                        // User clicked "Cancel"
+                        tg.showAlert('You need to connect your Telegram account to play the game.');
+                        tg.close();
+                    }
+                });
             }
-        });
-    }
-},
+        } catch (error) {
+            console.error('Error in game initialization:', error);
+            document.getElementById('error-display').textContent = 'Error initializing game: ' + error.message;
+        }
+    },
 
-startGame: function() {
-    const user = tg.initDataUnsafe.user;
-    if (user) {
-        gameState.player.name = user.first_name;
-    }
+    startGame: function() {
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            gameState.player.name = user.first_name;
+        }
 
-    this.generateMap();
-    this.startEnergyRestoration();
-    this.updateUI();
+        this.generateMap();
+        this.startEnergyRestoration();
+        this.updateUI();
 
-    tg.MainButton.setText('Start Game');
-    tg.MainButton.onClick(this.start.bind(this));
-    tg.MainButton.show();
-},
+        tg.MainButton.setText('Start Game');
+        tg.MainButton.onClick(this.start.bind(this));
+        tg.MainButton.show();
+    },
 
     generateMap: function() {
         const terrainTypes = ['forest', 'mountains', 'lake'];
@@ -297,86 +311,157 @@ startGame: function() {
     },
 
     startCombat: function(monsterName) {
-        const currentLocation = gameMap[gameState.map[gameState.player.position.y][gameState.player.position.x]];
-        const areaLevel = currentLocation.level;
-        let monsterHp = 30 + (areaLevel * 20);
-        const monsterMaxHp = monsterHp;
-        const monsterAttack = 3 + (areaLevel * 2);
-        let playerAttack = gameState.player.attack;
-
-        const updateCombatUI = () => {
-            const gameContainer = document.getElementById('game-container');
-            gameContainer.innerHTML = `
-                <h2>Combat with ${monsterName} (Level ${areaLevel})</h2>
-                <div class="stats">
-                    <div class="stat">
-                        <p>Your HP: ${gameState.player.hp}/${gameState.player.maxHp}</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${(gameState.player.hp / gameState.player.maxHp) * 100}%"></div>
+            const currentLocation = gameMap[gameState.map[gameState.player.position.y][gameState.player.position.x]];
+            const areaLevel = currentLocation.level;
+            let monsterHp = 30 + (areaLevel * 20);
+            const monsterMaxHp = monsterHp;
+            const monsterAttack = 3 + (areaLevel * 2);
+            let playerAttack = gameState.player.attack;
+    
+            const updateCombatUI = () => {
+                const gameContainer = document.getElementById('game-container');
+                gameContainer.innerHTML = `
+                    <h2>Combat with ${monsterName} (Level ${areaLevel})</h2>
+                    <div class="stats">
+                        <div class="stat">
+                            <p>Your HP: ${gameState.player.hp}/${gameState.player.maxHp}</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: ${(gameState.player.hp / gameState.player.maxHp) * 100}%"></div>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <p>${monsterName}'s HP: ${monsterHp}/${monsterMaxHp}</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: ${(monsterHp / monsterMaxHp) * 100}%"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat">
-                        <p>${monsterName}'s HP: ${monsterHp}/${monsterMaxHp}</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${(monsterHp / monsterMaxHp) * 100}%"></div>
-                        </div>
+                    <p>Your Attack Power: ${playerAttack}</p>
+                    <p>Monster's Attack Power: ${monsterAttack}</p>
+                    <div class="actions">
+                        <button onclick="game.playerAttack()">Attack</button>
+                        <button onclick="game.useHealthPotion()">Use Health Potion (${gameState.player.inventory.healthPotion})</button>
+                        <button onclick="game.useDamageBooster()">Use Damage Booster (${gameState.player.inventory.damageBooster})</button>
+                        <button onclick="game.flee()">Flee</button>
                     </div>
-                </div>
-                <p>Your Attack Power: ${playerAttack}</p>
-                <p>Monster's Attack Power: ${monsterAttack}</p>
-                <div class="actions">
-                    <button onclick="game.playerAttack()">Attack</button>
-                    <button onclick="game.useHealthPotion()">Use Health Potion (${gameState.player.inventory.healthPotion})</button>
-                    <button onclick="game.useDamageBooster()">Use Damage Booster (${gameState.player.inventory.damageBooster})</button>
-                    <button onclick="game.flee()">Flee</button>
-                </div>
-            `;
-        };
-
-        this.playerAttack = () => {
-                    const isCritical = Math.random() < CRIT_CHANCE;
-                    const damageMultiplier = isCritical ? CRIT_MULTIPLIER : 1;
-                    const playerDamage = Math.floor(playerAttack * damageMultiplier);
-                    monsterHp = Math.max(0, monsterHp - playerDamage);
-        
-                    let attackMessage = `You hit the ${monsterName} for ${playerDamage} damage!`;
-                    if (isCritical) {
-                        attackMessage += " Critical hit!";
-                    }
-        
-                    if (monsterHp <= 0) {
-                        const xpGained = 10 + (areaLevel * 5);
-                        const goldGained = Math.floor(Math.random() * 10) + (areaLevel * 5);
-                        gameState.player.xp += xpGained;
-                        gameState.player.gold += goldGained;
-                        tg.showPopup({
-                            title: 'Victory!',
-                            message: `${attackMessage}\nYou defeated the ${monsterName}! You gained ${xpGained} XP and ${goldGained} gold.`,
-                            buttons: [{ type: 'ok' }]
-                        });
-                        this.checkLevelUp();
-                        this.updateUI();
-                        this.autoSave();
-                        return;
-                    }
-        
-                    // Monster's turn
-                    const monsterIsCritical = Math.random() < CRIT_CHANCE;
-                    const monsterDamageMultiplier = monsterIsCritical ? CRIT_MULTIPLIER : 1;
-                    const monsterDamage = Math.floor(monsterAttack * monsterDamageMultiplier);
-                    gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
-        
-                    let monsterAttackMessage = `The ${monsterName} hit you for ${monsterDamage} damage!`;
-                    if (monsterIsCritical) {
-                        monsterAttackMessage += " Critical hit!";
-                    }
-        
+                `;
+            };
+    
+            this.playerAttack = () => {
+                const isCritical = Math.random() < CRIT_CHANCE;
+                const damageMultiplier = isCritical ? CRIT_MULTIPLIER : 1;
+                const playerDamage = Math.floor(playerAttack * damageMultiplier);
+                monsterHp = Math.max(0, monsterHp - playerDamage);
+    
+                let attackMessage = `You hit the ${monsterName} for ${playerDamage} damage!`;
+                if (isCritical) {
+                    attackMessage += " Critical hit!";
+                }
+    
+                if (monsterHp <= 0) {
+                    const xpGained = 10 + (areaLevel * 5);
+                    const goldGained = Math.floor(Math.random() * 10) + (areaLevel * 5);
+                    gameState.player.xp += xpGained;
+                    gameState.player.gold += goldGained;
                     tg.showPopup({
-                        title: 'Combat Round',
-                        message: `${attackMessage}\n${monsterAttackMessage}`,
+                        title: 'Victory!',
+                        message: `${attackMessage}\nYou defeated the ${monsterName}! You gained ${xpGained} XP and ${goldGained} gold.`,
                         buttons: [{ type: 'ok' }]
                     });
-        
+                    this.checkLevelUp();
+                    this.updateUI();
+                    this.autoSave();
+                    return;
+                }
+    
+                // Monster's turn
+                const monsterIsCritical = Math.random() < CRIT_CHANCE;
+                const monsterDamageMultiplier = monsterIsCritical ? CRIT_MULTIPLIER : 1;
+                const monsterDamage = Math.floor(monsterAttack * monsterDamageMultiplier);
+                gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
+    
+                let monsterAttackMessage = `The ${monsterName} hit you for ${monsterDamage} damage!`;
+                if (monsterIsCritical) {
+                    monsterAttackMessage += " Critical hit!";
+                }
+    
+                tg.showPopup({
+                    title: 'Combat Round',
+                    message: `${attackMessage}\n${monsterAttackMessage}`,
+                    buttons: [{ type: 'ok' }]
+                });
+    
+                if (gameState.player.hp <= 0) {
+                    tg.showPopup({
+                        title: 'Game Over',
+                        message: "You have been defeated!",
+                        buttons: [{ type: 'ok' }]
+                    });
+                    this.init();
+                    return;
+                }
+    
+                updateCombatUI();
+                this.autoSave();
+            };
+    
+            this.useHealthPotion = () => {
+                if (gameState.player.inventory.healthPotion > 0) {
+                    gameState.player.inventory.healthPotion--;
+                    gameState.player.hp = Math.min(gameState.player.hp + 50, gameState.player.maxHp);
+                    tg.showPopup({
+                        title: 'Health Potion Used',
+                        message: "You used a Health Potion and restored 50 HP!",
+                        buttons: [{ type: 'ok' }]
+                    });
+                    updateCombatUI();
+                    this.autoSave();
+                } else {
+                    tg.showPopup({
+                        title: 'No Health Potions',
+                        message: "You don't have any Health Potions!",
+                        buttons: [{ type: 'ok' }]
+                    });
+                }
+            };
+    
+            this.useDamageBooster = () => {
+                if (gameState.player.inventory.damageBooster > 0) {
+                    gameState.player.inventory.damageBooster--;
+                    playerAttack += 5;
+                    tg.showPopup({
+                        title: 'Damage Booster Used',
+                        message: "You used a Damage Booster! Your attack increased by 5 for this battle.",
+                        buttons: [{ type: 'ok' }]
+                    });
+                    updateCombatUI();
+                    this.autoSave();
+                } else {
+                    tg.showPopup({
+                        title: 'No Damage Boosters',
+                        message: "You don't have any Damage Boosters!",
+                        buttons: [{ type: 'ok' }]
+                    });
+                }
+            };
+    
+            this.flee = () => {
+                if (Math.random() < 0.5) {
+                    tg.showPopup({
+                        title: 'Fled Successfully',
+                        message: "You successfully fled from the battle!",
+                        buttons: [{ type: 'ok' }]
+                    });
+                    this.updateUI();
+                    this.autoSave();
+                } else {
+                    const monsterDamage = Math.floor(Math.random() * monsterAttack) + 1;
+                    gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
+                    tg.showPopup({
+                        title: 'Failed to Flee',
+                        message: `You failed to flee! The ${monsterName} hit you for ${monsterDamage} damage.`,
+                        buttons: [{ type: 'ok' }]
+                    });
                     if (gameState.player.hp <= 0) {
                         tg.showPopup({
                             title: 'Game Over',
@@ -386,205 +471,139 @@ startGame: function() {
                         this.init();
                         return;
                     }
-        
                     updateCombatUI();
                     this.autoSave();
-                };
-        
-                this.useHealthPotion = () => {
-                    if (gameState.player.inventory.healthPotion > 0) {
-                        gameState.player.inventory.healthPotion--;
-                        gameState.player.hp = Math.min(gameState.player.hp + 50, gameState.player.maxHp);
-                        tg.showPopup({
-                            title: 'Health Potion Used',
-                            message: "You used a Health Potion and restored 50 HP!",
-                            buttons: [{ type: 'ok' }]
-                        });
-                        updateCombatUI();
-                        this.autoSave();
-                    } else {
-                        tg.showPopup({
-                            title: 'No Health Potions',
-                            message: "You don't have any Health Potions!",
-                            buttons: [{ type: 'ok' }]
-                        });
-                    }
-                };
-        
-                this.useDamageBooster = () => {
-                    if (gameState.player.inventory.damageBooster > 0) {
-                        gameState.player.inventory.damageBooster--;
-                        playerAttack += 5;
-                        tg.showPopup({
-                            title: 'Damage Booster Used',
-                            message: "You used a Damage Booster! Your attack increased by 5 for this battle.",
-                            buttons: [{ type: 'ok' }]
-                        });
-                        updateCombatUI();
-                        this.autoSave();
-                    } else {
-                        tg.showPopup({
-                            title: 'No Damage Boosters',
-                            message: "You don't have any Damage Boosters!",
-                            buttons: [{ type: 'ok' }]
-                        });
-                    }
-                };
-        
-                this.flee = () => {
-                    if (Math.random() < 0.5) {
-                        tg.showPopup({
-                            title: 'Fled Successfully',
-                            message: "You successfully fled from the battle!",
-                            buttons: [{ type: 'ok' }]
-                        });
-                        this.updateUI();
-                        this.autoSave();
-                    } else {
-                        const monsterDamage = Math.floor(Math.random() * monsterAttack) + 1;
-                        gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
-                        tg.showPopup({
-                            title: 'Failed to Flee',
-                            message: `You failed to flee! The ${monsterName} hit you for ${monsterDamage} damage.`,
-                            buttons: [{ type: 'ok' }]
-                        });
-                        if (gameState.player.hp <= 0) {
-                            tg.showPopup({
-                                title: 'Game Over',
-                                message: "You have been defeated!",
-                                buttons: [{ type: 'ok' }]
-                            });
-                            this.init();
-                            return;
-                        }
-                        updateCombatUI();
-                        this.autoSave();
-                    }
-                };
-        
-                updateCombatUI();
-            },
-        
-            checkLevelUp: function() {
-                const xpNeeded = gameState.player.level * 10;
-                if (gameState.player.xp >= xpNeeded) {
-                    gameState.player.level++;
-                    gameState.player.xp -= xpNeeded;
-                    gameState.player.maxHp += 10;
-                    gameState.player.hp = gameState.player.maxHp;
-                    gameState.player.attack += 2;
-                    tg.showPopup({
-                        title: 'Level Up!',
-                        message: `Congratulations! You've reached level ${gameState.player.level}! Your max HP increased by 10 and your attack power increased by 2.`,
-                        buttons: [{ type: 'ok' }]
-                    });
-                    this.autoSave();
                 }
-            },
-        
-            useEnergyPotion: function() {
-                if (gameState.player.inventory.energyPotion > 0) {
-                    gameState.player.inventory.energyPotion--;
-                    gameState.player.energy = Math.min(gameState.player.energy + 5, gameState.player.maxEnergy);
-                    tg.showPopup({
-                        title: 'Energy Potion Used',
-                        message: "You used an Energy Potion and restored 5 Energy!",
-                        buttons: [{ type: 'ok' }]
-                    });
-                    this.updateUI();
-                    this.autoSave();
-                } else {
-                    tg.showPopup({
-                        title: 'No Energy Potions',
-                        message: "You don't have any Energy Potions!",
-                        buttons: [{ type: 'ok' }]
-                    });
-                }
-            },
-        
-            openShop: function() {
-                const gameContainer = document.getElementById('game-container');
-                gameContainer.innerHTML = `
-                    <h2>Shop</h2>
-                    <p>Your Gold: ${gameState.player.gold}</p>
-                    <div class="inventory">
-                        <h3>Your Inventory</h3>
-                        <p>Health Potions: ${gameState.player.inventory.healthPotion}</p>
-                        <p>Damage Boosters: ${gameState.player.inventory.damageBooster}</p>
-                        <p>Energy Potions: ${gameState.player.inventory.energyPotion}</p>
-                    </div>
-                    ${Object.entries(shopItems).map(([itemId, item]) =>
-                        `<div class="shop-item">
-                            <div>
-                                <p>${item.name} - ${item.price} gold</p>
-                                <p>${item.effect}</p>
-                            </div>
-                            <button onclick="game.buyItem('${itemId}')">Buy</button>
-                        </div>`
-                    ).join('')}
-                    <button onclick="game.updateUI()">Leave Shop</button>
-                `;
-            },
-        
-            buyItem: function(itemId) {
-                const item = shopItems[itemId];
-                if (gameState.player.gold >= item.price) {
-                    gameState.player.gold -= item.price;
-                    gameState.player.inventory[itemId]++;
-                    tg.showPopup({
-                        title: 'Item Purchased',
-                        message: `You bought a ${item.name}!`,
-                        buttons: [{ type: 'ok' }]
-                    });
-                    this.openShop(); // Refresh the shop display
-                    this.autoSave();
-                } else {
-                    tg.showPopup({
-                        title: 'Not Enough Gold',
-                        message: "You don't have enough gold!",
-                        buttons: [{ type: 'ok' }]
-                    });
-                }
-            },
-        
-            autoSave: function() {
-                const gameStateString = JSON.stringify(gameState);
-                tg.CloudStorage.setItem('gameState', gameStateString)
-                    .catch((error) => {
-                        console.error('Error auto-saving game:', error);
-                    });
-            },
-        
-            loadGame: function() {
-                return tg.CloudStorage.getItem('gameState')
-                    .then((savedState) => {
-                        if (savedState) {
-                            gameState = JSON.parse(savedState);
-                            tg.showPopup({
-                                title: 'Game Loaded',
-                                message: 'Your previous game has been loaded.',
-                                buttons: [{ type: 'ok' }]
-                            });
-                        } else {
-                            tg.showPopup({
-                                title: 'New Game',
-                                message: 'No saved game found. Starting a new game.',
-                                buttons: [{ type: 'ok' }]
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Error loading game:', error);
-                        tg.showPopup({
-                            title: 'Load Failed',
-                            message: 'Failed to load game. Starting a new game.',
-                            buttons: [{ type: 'ok' }]
-                        });
-                    });
+            };
+    
+            updateCombatUI();
+        },
+    
+        checkLevelUp: function() {
+            const xpNeeded = gameState.player.level * 10;
+            if (gameState.player.xp >= xpNeeded) {
+                gameState.player.level++;
+                gameState.player.xp -= xpNeeded;
+                gameState.player.maxHp += 10;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.attack += 2;
+                tg.showPopup({
+                    title: 'Level Up!',
+                    message: `Congratulations! You've reached level ${gameState.player.level}! Your max HP increased by 10 and your attack power increased by 2.`,
+                    buttons: [{ type: 'ok' }]
+                });
+                this.autoSave();
             }
-        };
-        
-        // Initialize the game when the script loads
-        document.addEventListener('DOMContentLoaded', () => {
+        },
+    
+        useEnergyPotion: function() {
+            if (gameState.player.inventory.energyPotion > 0) {
+                gameState.player.inventory.energyPotion--;
+                gameState.player.energy = Math.min(gameState.player.energy + 5, gameState.player.maxEnergy);
+                tg.showPopup({
+                    title: 'Energy Potion Used',
+                    message: "You used an Energy Potion and restored 5 Energy!",
+                    buttons: [{ type: 'ok' }]
+                });
+                this.updateUI();
+                this.autoSave();
+            } else {
+                tg.showPopup({
+                    title: 'No Energy Potions',
+                    message: "You don't have any Energy Potions!",
+                    buttons: [{ type: 'ok' }]
+                });
+            }
+        },
+    
+        openShop: function() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.innerHTML = `
+                <h2>Shop</h2>
+                <p>Your Gold: ${gameState.player.gold}</p>
+                <div class="inventory">
+                    <h3>Your Inventory</h3>
+                    <p>Health Potions: ${gameState.player.inventory.healthPotion}</p>
+                    <p>Damage Boosters: ${gameState.player.inventory.damageBooster}</p>
+                    <p>Energy Potions: ${gameState.player.inventory.energyPotion}</p>
+                </div>
+                ${Object.entries(shopItems).map(([itemId, item]) =>
+                    `<div class="shop-item">
+                        <div>
+                            <p>${item.name} - ${item.price} gold</p>
+                            <p>${item.effect}</p>
+                        </div>
+                        <button onclick="game.buyItem('${itemId}')">Buy</button>
+                    </div>`
+                ).join('')}
+                <button onclick="game.updateUI()">Leave Shop</button>
+            `;
+        },
+    
+        buyItem: function(itemId) {
+            const item = shopItems[itemId];
+            if (gameState.player.gold >= item.price) {
+                gameState.player.gold -= item.price;
+                gameState.player.inventory[itemId]++;
+                tg.showPopup({
+                    title: 'Item Purchased',
+                    message: `You bought a ${item.name}!`,
+                    buttons: [{ type: 'ok' }]
+                });
+                this.openShop(); // Refresh the shop display
+                this.autoSave();
+            } else {
+                tg.showPopup({
+                    title: 'Not Enough Gold',
+                    message: "You don't have enough gold!",
+                    buttons: [{ type: 'ok' }]
+                });
+            }
+        },
+    
+        autoSave: function() {
+            const gameStateString = JSON.stringify(gameState);
+            tg.CloudStorage.setItem('gameState', gameStateString)
+                .catch((error) => {
+                    console.error('Error auto-saving game:', error);
+                });
+        },
+    
+        loadGame: function() {
+            return tg.CloudStorage.getItem('gameState')
+                .then((savedState) => {
+                    if (savedState) {
+                        gameState = JSON.parse(savedState);
+                        tg.showPopup({
+                            title: 'Game Loaded',
+                            message: 'Your previous game has been loaded.',
+                            buttons: [{ type: 'ok' }]
+                        });
+                    } else {
+                        tg.showPopup({
+                            title: 'New Game',
+                            message: 'No saved game found. Starting a new game.',
+                            buttons: [{ type: 'ok' }]
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading game:', error);
+                    tg.showPopup({
+                        title: 'Load Failed',
+                        message: 'Failed to load game. Starting a new game.',
+                        buttons: [{ type: 'ok' }]
+                    });
+                });
+        }
+    };
+    
+    // Initialize the game when the script loads
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
             game.init();
-        });
+        } catch (error) {
+            console.error('Error during game initialization:', error);
+            document.getElementById('error-display').textContent = 'Error during game initialization: ' + error.message;
+        }
+    });
