@@ -1,0 +1,43 @@
+<div id="bag">
+    <h1>Bag</h1>
+    <div class="inventory-grid">
+        <div class="item">
+            <img src="./assets/potion.png" alt="Potion">
+            <p>Potion</p>
+        </div>
+        <div class="item">
+            <img src="./assets/sword.png" alt="Sword">
+            <p>Sword</p>
+        </div>
+        <div class="item">
+            <img src="./assets/shield.png" alt="Shield">
+            <p>Shield</p>
+        </div>
+        <!-- Add more items as needed -->
+    </div>
+</div>
+
+<style>
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        justify-items: center;
+    }
+
+    .inventory-grid .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .inventory-grid .item img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .inventory-grid .item p {
+        margin-top: 5px;
+        font-size: 14px;
+    }
+</style>
