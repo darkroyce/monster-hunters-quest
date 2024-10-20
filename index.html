@@ -38,12 +38,20 @@
         /* Main content should fill the viewport minus the header and the bottom menu */
         main {
             height: calc(100vh - 120px); /* Full height minus header and bottom nav */
-            padding: 10px;
+            padding-top: 10px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            flex-direction: column;
             overflow: auto; /* In case the content overflows */
+        }
+
+        /* Content container for each tab */
+        .content-container {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            width: 100%;
         }
 
         /* Bottom navigation menu */
