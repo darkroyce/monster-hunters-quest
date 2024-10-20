@@ -16,10 +16,10 @@
             color-scheme: var(--tg-color-scheme);
         }
 
-        /* Header containing the logo */
+        /* Header containing the logo and energy counter */
         .header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             background-color: var(--tg-theme-bg-color);
             border-bottom: 1px solid #ccc;
@@ -28,11 +28,18 @@
             width: 100%;
             top: 0;
             z-index: 1000;
+            padding: 0 15px;
         }
 
         .header img {
             width: 50px;
             height: auto;
+        }
+
+        /* Energy counter */
+        .energy-counter {
+            font-size: 16px;
+            color: var(--tg-theme-link-color);
         }
 
         /* Main content should fill the viewport minus the header and the bottom menu */
@@ -95,9 +102,10 @@
 
 <body>
 
-    <!-- Header containing the logo -->
+    <!-- Header containing the logo and energy counter -->
     <div class="header">
         <img src="./assets/tapps.png" alt="Logo Placeholder">
+        <div class="energy-counter" id="energy-counter">Energy: 10</div>
     </div>
 
     <!-- Dynamic Content Area -->
@@ -136,6 +144,38 @@
 
         // Load the Home tab by default
         loadTab('home');
+
+        // Energy logic
+        const MAX_ENERGY = 10;
+        const REFILL_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+        const energyCounter = document.getElementById('energy-counter');
+
+        function updateEnergy() {
+            let energy = localStorage.getItem('energy') || MAX_ENERGY;
+            let lastRefill = localStorage.getItem('lastRefill') || Date.now();
+
+            energy = parseInt(energy);
+            lastRefill = parseInt(lastRefill);
+
+            const now = Date.now();
+            const timePassed = now - lastRefill;
+            const refills = Math.floor(timePassed / REFILL_TIME);
+
+            if (energy < MAX_ENERGY && refills > 0) {
+                energy = Math.min(MAX_ENERGY, energy + refills);
+                lastRefill = now - (timePassed % REFILL_TIME);
+            }
+
+            // Update energy display and save to localStorage
+            energyCounter.textContent = `Energy: ${energy}`;
+            localStorage.setItem('energy', energy);
+            localStorage.setItem('lastRefill', lastRefill);
+        }
+
+        // Refill energy every minute and update display
+        setInterval(updateEnergy, 60 * 1000); // Check every minute
+        updateEnergy(); // Initial energy update
+
     </script>
 
     <!-- Eruda dev tools (as per the template provided) -->
