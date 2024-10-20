@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Monster Hunters Quest</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            color-scheme: var(--tg-color-scheme);
+        }
+
+        /* Header containing the logo and energy counter */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--tg-theme-bg-color);
+            border-bottom: 1px solid #ccc;
+            height: 60px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0 15px;
+        }
+
+        .header img {
+            width: 50px;
+            height: auto;
+        }
+
+        /* Energy counter - aligned to the right with some padding */
+        .energy-counter {
+            font-size: 16px;
+            color: var(--tg-theme-link-color);
+            padding-right: 10px;
+            white-space: nowrap;
+        }
+
+        main {
+            height: calc(100vh - 120px);
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .content-container {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: var(--tg-theme-bg-color);
+            border-top: 1px solid #ccc;
+            height: 60px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        .bottom-nav button {
+            background-color: transparent;
+            border: none;
+            color: var(--tg-theme-link-color);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .bottom-nav button:hover {
+            color: #000;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: lightgray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <img src="./assets/tapps.png" alt="Logo Placeholder">
+        <div class="energy-counter" id="energy-counter">Energy: 10</div>
+    </div>
+
+    <main id="content">
+    </main>
+
+    <div class="bottom-nav">
+        <button id="bag-btn" onclick="loadTab('bag')">👜</button>
+        <button id="home-btn" onclick="loadTab('home')">🏠</button>
+        <button id="map-btn" onclick="loadTab('map')">🗺️</button>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        Telegram.WebApp.ready();
+
+        function loadTab(tabName) {
+            fetch(`${tabName}.html`)
+                .then(response => response.ok ? response.text() : "<p>Tab not found</p>")
+                .then(data => document.getElementById('content').innerHTML = data);
+        }
+
+        loadTab('home');
+
+        const MAX_ENERGY = 10;
+        const REFILL_TIME = 15 * 60 * 1000;
+        const energyCounter = document.getElementById('energy-counter');
+
+        function updateEnergy() {
+            let energy = localStorage.getItem('energy') || MAX_ENERGY;
+            let lastRefill = localStorage.getItem('lastRefill') || Date.now();
+
+            energy = parseInt(energy);
+            lastRefill = parseInt(lastRefill);
+
+            const now = Date.now();
+            const timePassed = now - lastRefill;
+            const refills = Math.floor(timePassed / REFILL_TIME);
+
+            if (energy < MAX_ENERGY && refills > 0) {
+                energy = Math.min(MAX_ENERGY, energy + refills);
+                lastRefill = now - (timePassed % REFILL_TIME);
+            }
+
+            energyCounter.textContent = `Energy: ${energy}`;
+            localStorage.setItem('energy', energy);
+            localStorage.setItem('lastRefill', lastRefill);
+        }
+
+        setInterval(updateEnergy, 60 * 1000);
+        updateEnergy();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+</body>
+</html>
