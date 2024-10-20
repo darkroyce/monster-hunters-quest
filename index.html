@@ -18,6 +18,19 @@
             flex-direction: column;
         }
 
+        /* Logo container at the top */
+        .logo-container {
+            text-align: center;
+            padding: 10px;
+            background-color: var(--tg-theme-bg-color);
+            border-bottom: 1px solid #ccc;
+        }
+
+        .logo-container img {
+            width: 60px; /* Adjust size as needed */
+            height: auto;
+        }
+
         /* Main content should fill the viewport minus the menu */
         main {
             flex: 1;
@@ -25,6 +38,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 10px;
         }
 
         /* Bottom navigation menu */
@@ -66,6 +80,13 @@
 </head>
 
 <body>
+
+    <!-- Logo Placeholder -->
+    <div class="logo-container">
+        <img src="./assets/tapps.png" alt="Logo Placeholder">
+    </div>
+
+    <!-- Dynamic Content Area -->
     <main id="content">
         <!-- Dynamic content will be loaded here -->
     </main>
