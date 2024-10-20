@@ -14,8 +14,6 @@
             background-color: var(--tg-theme-bg-color);
             color: var(--tg-theme-text-color);
             color-scheme: var(--tg-color-scheme);
-            display: flex;
-            flex-direction: column;
         }
 
         /* Header containing the logo */
@@ -39,13 +37,13 @@
 
         /* Main content should fill the viewport minus the header and the bottom menu */
         main {
-            flex: 1;
-            padding-top: 60px; /* Header height */
-            padding-bottom: 60px; /* Bottom nav height */
+            height: calc(100vh - 120px); /* Full height minus header and bottom nav */
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
+            overflow: auto; /* In case the content overflows */
         }
 
         /* Bottom navigation menu */
@@ -55,7 +53,6 @@
             align-items: center;
             background-color: var(--tg-theme-bg-color);
             border-top: 1px solid #ccc;
-            padding: 15px 0;
             height: 60px; /* Fixed height */
             position: fixed;
             width: 100%;
