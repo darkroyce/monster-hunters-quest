@@ -366,58 +366,53 @@ startCombat: function(monsterName) {
         }
     };
 
-        this.useDamageBooster = () => {
-            if (gameState.player.inventory.damageBooster > 0) {
-                gameState.player.inventory.damageBooster--;
-                playerAttack += 5;
-                tg.showPopup({
-                    title: 'Damage Booster Used',
-                    message: "You used a Damage Booster! Your attack increased by 5 for this battle.",
-                    buttons: [{ type: 'ok' }]
-                });
-                updateCombatUI();
-            } else {
-                tg.showPopup({
-                    title: 'No Damage Boosters',
-                    message: "You don't have any Damage Boosters!",
-                    buttons: [{ type: 'ok' }]
-                });
-            }
-        };
+            this.useDamageBooster = () => {
+        if (gameState.player.inventory.damageBooster > 0) {
+            gameState.player.inventory.damageBooster--;
+            playerAttack += 5;
+            tg.showPopup({
+                title: 'Damage Booster Used',
+                message: "You used a Damage Booster! Your attack increased by 5 for this battle.",
+                buttons: [{ type: 'ok' }]
+            });
+            updateCombatUI();
+        } else {
+            tg.showPopup({
+                title: 'No Damage Boosters',
+                message: "You don't have any Damage Boosters!",
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    };
 
-        this.flee = () => {
-            if (Math.random() < 0.5) {
+         this.flee = () => {
+        if (Math.random() < 0.5) {
+            tg.showPopup({
+                title: 'Fled Successfully',
+                message: "You successfully fled from the battle!",
+                buttons: [{ type: 'ok' }]
+            });
+            this.updateUI();
+        } else {
+            const monsterDamage = Math.floor(Math.random() * monsterAttack) + 1;
+            gameState.player.hp = Math.max(0, gameState.player.hp - monsterDamage);
+            tg.showPopup({
+                title: 'Failed to Flee',
+                message: `You failed to flee! The ${monsterName} hit you for ${monsterDamage} damage.`,
+                buttons: [{ type: 'ok' }]
+            });
+            if (gameState.player.hp <= 0) {
                 tg.showPopup({
-                    title: 'Fled Successfully',
-                    message: "You successfully fled from the battle!",
+                    title: 'Game Over',
+                    message: "You have been defeated!",
                     buttons: [{ type: 'ok' }]
                 });
-                this.updateUI();
-            } else {
-                tg.showPopup({
-                    title: 'Failed to Flee',
-                    message: "You failed to flee!",
-                    buttons: [{ type: 'ok' }]
-                });
-                const monsterDamage = Math.floor(Math.random() * monsterAttack) + 1;
-                gameState.player.hp -= monsterDamage;
-                tg.showPopup({
-                    title: 'Monster Attack',
-                    message: `The ${monsterName} hit you for ${monsterDamage} damage as you tried to flee!`,
-                    buttons: [{ type: 'ok' }]
-                });
-                if (gameState.player.hp <= 0) {
-                    tg.showPopup({
-                        title: 'Game Over',
-                        message: "You have been defeated!",
-                        buttons: [{ type: 'ok' }]
-                    });
-                    this.init();
-                    return;
-                }
-                updateCombatUI();
+                this.init();
+                return;
             }
-        };
+            updateCombatUI();
+        }
+    };
 
         updateCombatUI();
     },
