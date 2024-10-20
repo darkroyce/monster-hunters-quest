@@ -347,24 +347,24 @@ startCombat: function(monsterName) {
         updateCombatUI();
     };
 
-        this.useHealthPotion = () => {
-            if (gameState.player.inventory.healthPotion > 0) {
-                gameState.player.inventory.healthPotion--;
-                gameState.player.hp = Math.min(gameState.player.hp + 50, gameState.player.maxHp);
-                tg.showPopup({
-                    title: 'Health Potion Used',
-                    message: "You used a Health Potion and restored 50 HP!",
-                    buttons: [{ type: 'ok' }]
-                });
-                updateCombatUI();
-            } else {
-                tg.showPopup({
-                    title: 'No Health Potions',
-                    message: "You don't have any Health Potions!",
-                    buttons: [{ type: 'ok' }]
-                });
-            }
-        };
+    this.useHealthPotion = () => {
+        if (gameState.player.inventory.healthPotion > 0) {
+            gameState.player.inventory.healthPotion--;
+            gameState.player.hp = Math.min(gameState.player.hp + 50, gameState.player.maxHp);
+            tg.showPopup({
+                title: 'Health Potion Used',
+                message: "You used a Health Potion and restored 50 HP!",
+                buttons: [{ type: 'ok' }]
+            });
+            updateCombatUI();
+        } else {
+            tg.showPopup({
+                title: 'No Health Potions',
+                message: "You don't have any Health Potions!",
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    };
 
         this.useDamageBooster = () => {
             if (gameState.player.inventory.damageBooster > 0) {
