@@ -1,3 +1,4 @@
+
 // Initialize Telegram WebApp
 let tg;
 try {
@@ -11,18 +12,28 @@ try {
 // Check Telegram connection and show user info
 function checkTelegramConnection() {
     try {
-        tg.ready();
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            let user = tg.initDataUnsafe.user;
-            document.getElementById('status-message').style.display = 'none';
-            document.getElementById('game-home').style.display = 'block';
-            document.getElementById('telegram-name').textContent = user.first_name;
-            document.getElementById('telegram-id').textContent = user.id;
-            // Future: TON interactions and cloud storage
-            prepareForTON(user.id, user.first_name);
-        } else {
-            document.getElementById('status-message').textContent = 'Please connect to Telegram to play the game.';
-        }
+        tg.ready().then(() => {
+            console.log("Telegram WebApp is ready.");
+            
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                let user = tg.initDataUnsafe.user;
+                console.log("User info retrieved:", user);
+                
+                document.getElementById('status-message').style.display = 'none';
+                document.getElementById('game-home').style.display = 'block';
+                document.getElementById('telegram-name').textContent = user.first_name;
+                document.getElementById('telegram-id').textContent = user.id;
+                
+                // Future: TON interactions and cloud storage
+                prepareForTON(user.id, user.first_name);
+            } else {
+                console.log("No user info found.");
+                document.getElementById('status-message').textContent = 'Please connect to Telegram to play the game.';
+            }
+        }).catch((error) => {
+            console.error("Error during Telegram readiness:", error);
+            document.getElementById('status-message').textContent = 'Error during Telegram readiness: ' + error.message;
+        });
     } catch (error) {
         console.error('Error during Telegram connection:', error);
         document.getElementById('status-message').textContent = 'Error during Telegram connection: ' + error.message;
