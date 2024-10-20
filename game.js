@@ -1,11 +1,11 @@
-
 // Initialize Telegram WebApp
 let tg;
 try {
     tg = window.Telegram.WebApp;
+    console.log('Telegram WebApp initialized successfully.');
 } catch (error) {
     console.error('Failed to initialize Telegram WebApp:', error);
-    document.getElementById('error-display').textContent = 'Failed to initialize Telegram WebApp. Please make sure you are opening this in Telegram.';
+    document.getElementById('game-container').innerHTML = '<p>Error: Failed to initialize Telegram WebApp. Please ensure the game is opened in Telegram.</p>';
 }
 
 // Constants
