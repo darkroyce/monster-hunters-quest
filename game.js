@@ -74,21 +74,39 @@ const shopItems = {
 // Game functions
 const game = {
     init: function() {
+        console.log("Initializing game...");
+        document.getElementById('game-container').innerHTML = '<p>Initializing game...</p>';
+        
         try {
-            if (!tg) {
-                throw new Error('Telegram WebApp not initialized');
+            if (!window.Telegram || !window.Telegram.WebApp) {
+                throw new Error('Telegram WebApp not available');
             }
+            console.log("Telegram WebApp available");
+            tg = window.Telegram.WebApp;
+            
+            console.log("Calling tg.ready()");
             tg.ready();
+            console.log("Telegram WebApp ready");
+            
+            console.log("Setting header color");
             tg.setHeaderColor('#4CAF50');
-
-            // Check if the user has already connected their account
+    
+            console.log("Checking user connection...");
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                // User is already connected, proceed to load or start the game
+                console.log("User connected, loading game");
+                document.getElementById('game-container').innerHTML = '<p>Loading saved game...</p>';
+                
                 this.loadGame().then(() => {
+                    console.log("Game loaded, starting game");
                     this.startGame();
+                }).catch(error => {
+                    console.error("Error loading game:", error);
+                    document.getElementById('game-container').innerHTML = '<p>Error loading game. Please try again.</p>';
                 });
             } else {
-                // User is not connected, show the connection prompt
+                console.log("User not connected, showing connection prompt");
+                document.getElementById('game-container').innerHTML = '<p>Please connect your Telegram account.</p>';
+                
                 tg.showPopup({
                     title: 'Connect Telegram Account',
                     message: 'Please connect your Telegram account to play the game.',
@@ -98,20 +116,23 @@ const game = {
                     ]
                 }, (buttonId) => {
                     if (buttonId === 'ok') {
-                        // User clicked "Connect", request access
+                        console.log("User clicked Connect, requesting write access");
                         tg.requestWriteAccess((result) => {
                             if (result) {
-                                // Access granted, now we can load or start the game
+                                console.log("Write access granted, loading game");
                                 this.loadGame().then(() => {
                                     this.startGame();
+                                }).catch(error => {
+                                    console.error("Error loading game after granting access:", error);
+                                    document.getElementById('game-container').innerHTML = '<p>Error loading game. Please try again.</p>';
                                 });
                             } else {
-                                // Access denied
+                                console.log("Write access denied");
                                 tg.showAlert('Failed to connect Telegram account. Please try again.');
                             }
                         });
                     } else {
-                        // User clicked "Cancel"
+                        console.log("User cancelled connection");
                         tg.showAlert('You need to connect your Telegram account to play the game.');
                         tg.close();
                     }
@@ -119,23 +140,38 @@ const game = {
             }
         } catch (error) {
             console.error('Error in game initialization:', error);
-            document.getElementById('error-display').textContent = 'Error initializing game: ' + error.message;
+            document.getElementById('game-container').innerHTML = 'Error initializing game: ' + error.message;
         }
     },
-
+    
     startGame: function() {
+        console.log("Starting game");
+        document.getElementById('game-container').innerHTML = '<p>Starting game...</p>';
+        
         const user = tg.initDataUnsafe.user;
         if (user) {
+            console.log("Setting player name:", user.first_name);
             gameState.player.name = user.first_name;
         }
-
+    
+        console.log("Generating map");
         this.generateMap();
+        
+        console.log("Starting energy restoration");
         this.startEnergyRestoration();
+        
+        console.log("Updating UI");
         this.updateUI();
-
+    
+        console.log("Setting up main button");
         tg.MainButton.setText('Start Game');
-        tg.MainButton.onClick(this.start.bind(this));
+        tg.MainButton.onClick(() => {
+            console.log("Main button clicked, starting game");
+            this.start();
+        });
         tg.MainButton.show();
+        
+        console.log("Game started successfully");
     },
 
     generateMap: function() {
