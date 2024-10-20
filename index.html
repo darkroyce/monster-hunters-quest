@@ -36,10 +36,12 @@
             height: auto;
         }
 
-        /* Energy counter */
+        /* Energy counter - aligned to the right with some padding */
         .energy-counter {
             font-size: 16px;
             color: var(--tg-theme-link-color);
+            padding-right: 10px; /* Ensure it doesn't touch the edge */
+            white-space: nowrap; /* Prevent the text from wrapping */
         }
 
         /* Main content should fill the viewport minus the header and the bottom menu */
