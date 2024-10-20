@@ -254,42 +254,42 @@ const game = {
         }
     },
 
-    startCombat: function(monsterName) {
-        const currentLocation = gameMap[gameState.map[gameState.player.position.y][gameState.player.position.x]];
-        const areaLevel = currentLocation.level;
-        let monsterHp = 30 + (areaLevel * 20);
-        const monsterMaxHp = monsterHp;
-        const monsterAttack = 3 + (areaLevel * 2);
-        let playerAttack = gameState.player.attack;
+startCombat: function(monsterName) {
+    const currentLocation = gameMap[gameState.map[gameState.player.position.y][gameState.player.position.x]];
+    const areaLevel = currentLocation.level;
+    let monsterHp = 30 + (areaLevel * 20);
+    const monsterMaxHp = monsterHp;
+    const monsterAttack = 3 + (areaLevel * 2);
+    let playerAttack = gameState.player.attack;
 
-        const updateCombatUI = () => {
-            const gameContainer = document.getElementById('game-container');
-            gameContainer.innerHTML = `
-                <h2>Combat with ${monsterName} (Level ${areaLevel})</h2>
-                <div class="stats">
-                    <div class="stat">
-                        <p>Your HP: ${gameState.player.hp}/${gameState.player.maxHp}</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${(gameState.player.hp / gameState.player.maxHp) * 100}%"></div>
-                        </div>
-                    </div>
-                    <div class="stat">
-                        <p>${monsterName}'s HP: ${monsterHp}/${monsterMaxHp}</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${(monsterHp / monsterMaxHp) * 100}%"></div>
-                        </div>
+    const updateCombatUI = () => {
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.innerHTML = `
+            <h2>Combat with ${monsterName} (Level ${areaLevel})</h2>
+            <div class="stats">
+                <div class="stat">
+                    <p>Your HP: ${gameState.player.hp}/${gameState.player.maxHp}</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${(gameState.player.hp / gameState.player.maxHp) * 100}%"></div>
                     </div>
                 </div>
-                <p>Your Attack Power: ${playerAttack}</p>
-                <p>Monster's Attack Power: ${monsterAttack}</p>
-                <div class="actions">
-                    <button onclick="game.playerAttack()">Attack</button>
-                    <button onclick="game.useHealthPotion()">Use Health Potion (${gameState.player.inventory.healthPotion})</button>
-                    <button onclick="game.useDamageBooster()">Use Damage Booster (${gameState.player.inventory.damageBooster})</button>
-                    <button onclick="game.flee()">Flee</button>
+                <div class="stat">
+                    <p>${monsterName}'s HP: ${monsterHp}/${monsterMaxHp}</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${(monsterHp / monsterMaxHp) * 100}%"></div>
+                    </div>
                 </div>
-            `;
-        };
+            </div>
+            <p>Your Attack Power: ${playerAttack}</p>
+            <p>Monster's Attack Power: ${monsterAttack}</p>
+            <div class="actions">
+                <button onclick="game.playerAttack()">Attack</button>
+                <button onclick="game.useHealthPotion()">Use Health Potion (${gameState.player.inventory.healthPotion})</button>
+                <button onclick="game.useDamageBooster()">Use Damage Booster (${gameState.player.inventory.damageBooster})</button>
+                <button onclick="game.flee()">Flee</button>
+            </div>
+        `;
+    };
 
         this.playerAttack = () => {
             const isCritical = Math.random() < CRIT_CHANCE;
