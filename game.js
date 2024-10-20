@@ -68,53 +68,61 @@ const shopItems = {
 // Game functions
 const game = {
     init: function() {
-        tg.ready();
-        tg.setHeaderColor('#4CAF50');
+    tg.ready();
+    tg.setHeaderColor('#4CAF50');
 
-        if (tg.initDataUnsafe.user) {
-            this.loadGame().then(() => {
-                this.startGame();
-            });
-        } else {
-            tg.showPopup({
-                title: 'Connect Telegram Account',
-                message: 'Please connect your Telegram account to play the game.',
-                buttons: [
-                    {text: 'Connect', type: 'ok'},
-                    {text: 'Cancel', type: 'close'}
-                ]
-            }, (buttonId) => {
-                if (buttonId === 'ok') {
-                    tg.requestWriteAccess((result) => {
-                        if (result) {
-                            this.loadGame().then(() => {
-                                this.startGame();
-                            });
-                        } else {
-                            tg.showAlert('Failed to connect Telegram account. Please try again.');
-                        }
-                    });
-                } else {
-                    tg.close();
-                }
-            });
-        }
-    },
+    // Check if the user has already connected their account
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        // User is already connected, proceed to load or start the game
+        this.loadGame().then(() => {
+            this.startGame();
+        });
+    } else {
+        // User is not connected, show the connection prompt
+        tg.showPopup({
+            title: 'Connect Telegram Account',
+            message: 'Please connect your Telegram account to play the game.',
+            buttons: [
+                {text: 'Connect', type: 'ok'},
+                {text: 'Cancel', type: 'close'}
+            ]
+        }, (buttonId) => {
+            if (buttonId === 'ok') {
+                // User clicked "Connect", request access
+                tg.requestWriteAccess((result) => {
+                    if (result) {
+                        // Access granted, now we can load or start the game
+                        this.loadGame().then(() => {
+                            this.startGame();
+                        });
+                    } else {
+                        // Access denied
+                        tg.showAlert('Failed to connect Telegram account. Please try again.');
+                    }
+                });
+            } else {
+                // User clicked "Cancel"
+                tg.showAlert('You need to connect your Telegram account to play the game.');
+                tg.close();
+            }
+        });
+    }
+},
 
-    startGame: function() {
-        const user = tg.initDataUnsafe.user;
-        if (user) {
-            gameState.player.name = user.first_name;
-        }
+startGame: function() {
+    const user = tg.initDataUnsafe.user;
+    if (user) {
+        gameState.player.name = user.first_name;
+    }
 
-        this.generateMap();
-        this.startEnergyRestoration();
-        this.updateUI();
+    this.generateMap();
+    this.startEnergyRestoration();
+    this.updateUI();
 
-        tg.MainButton.setText('Start Game');
-        tg.MainButton.onClick(this.start.bind(this));
-        tg.MainButton.show();
-    },
+    tg.MainButton.setText('Start Game');
+    tg.MainButton.onClick(this.start.bind(this));
+    tg.MainButton.show();
+},
 
     generateMap: function() {
         const terrainTypes = ['forest', 'mountains', 'lake'];
