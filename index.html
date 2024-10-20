@@ -1,164 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Monster Hunters Quest</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            color-scheme: var(--tg-color-scheme);
-        }
+<div class="content-container">
+    <h1>Monster Hunters Quest</h1>
+    <p>Move around the map and see your environment change!</p>
 
-        /* Energy icons displayed as ⚡️ symbols at the top center */
-        .energy-container {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 20px;
-            color: var(--tg-theme-link-color);
-        }
-
-        .cooldown {
-            font-size: 12px;
-            color: var(--tg-theme-text-color);
-            margin-top: 5px;
-        }
-
-        main {
-            height: calc(100vh - 60px); /* Adjust for the energy container height */
-            padding-top: 20px;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-        }
-
-        .content-container {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
-            width: 100%;
-        }
-
-        .bottom-nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background-color: var(--tg-theme-bg-color);
-            border-top: 1px solid #ccc;
-            height: 60px;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            z-index: 1000;
-        }
-
-        .bottom-nav button {
-            background-color: transparent;
-            border: none;
-            color: var(--tg-theme-link-color);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .bottom-nav button:hover {
-            color: #000;
-        }
-
-        .map-placeholder {
-            width: 100%;
-            height: 100%;
-            background-color: lightgray;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-    </style>
-</head>
-
-<body>
-
-    <!-- Energy ⚡️ icons at the top center -->
-    <div class="energy-container">
-        <div id="energy-display">⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️⚡️</div>
-        <div class="cooldown" id="cooldown" style="display: none;">Next refill in: 00:00</div>
+    <!-- Movement Buttons -->
+    <div class="movement-buttons">
+        <button onclick="move('up')">⬆️</button><br>
+        <button onclick="move('left')">⬅️</button>
+        <button onclick="move('down')">⬇️</button>
+        <button onclick="move('right')">➡️</button>
     </div>
+</div>
 
-    <main id="content">
-    </main>
+<style>
+    /* Background colors for different environments */
+    .city-bg { background-color: grey; }
+    .forest-bg { background-color: green; }
+    .lake-bg { background-color: blue; }
+    .field-bg { background-color: yellow; }
 
-    <div class="bottom-nav">
-        <button id="bag-btn" onclick="loadTab('bag')">👜</button>
-        <button id="home-btn" onclick="loadTab('home')">🏠</button>
-        <button id="map-btn" onclick="loadTab('map')">🗺️</button>
-    </div>
+    .movement-buttons {
+        margin-top: 20px;
+        text-align: center;
+    }
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        Telegram.WebApp.ready();
+    .movement-buttons button {
+        font-size: 24px;
+        margin: 5px;
+        padding: 10px;
+    }
+</style>
 
-        function loadTab(tabName) {
-            fetch(`${tabName}.html`)
-                .then(response => response.ok ? response.text() : "<p>Tab not found</p>")
-                .then(data => document.getElementById('content').innerHTML = data);
+<script>
+    const mapSize = 20;
+    let playerPosition = { x: Math.floor(mapSize / 2), y: Math.floor(mapSize / 2) };
+
+    function updateBackground(tileType) {
+        const body = document.body;
+        body.classList.remove('city-bg', 'forest-bg', 'lake-bg', 'field-bg');
+
+        if (tileType === 'city') {
+            body.classList.add('city-bg');
+        } else if (tileType === 'forest') {
+            body.classList.add('forest-bg');
+        } else if (tileType === 'lake') {
+            body.classList.add('lake-bg');
+        } else if (tileType === 'field') {
+            body.classList.add('field-bg');
+        }
+    }
+
+    // Function to move the player and update background
+    function move(direction) {
+        if (direction === 'up' && playerPosition.y > 0) {
+            playerPosition.y -= 1;
+        } else if (direction === 'down' && playerPosition.y < mapSize - 1) {
+            playerPosition.y += 1;
+        } else if (direction === 'left' && playerPosition.x > 0) {
+            playerPosition.x -= 1;
+        } else if (direction === 'right' && playerPosition.x < mapSize - 1) {
+            playerPosition.x += 1;
         }
 
-        loadTab('home');
-
-        const MAX_ENERGY = 10;
-        const REFILL_TIME = 15 * 60 * 1000; 
-        const energyDisplay = document.getElementById('energy-display');
-        const cooldown = document.getElementById('cooldown');
-
-        function updateEnergy() {
-            let energy = localStorage.getItem('energy') || MAX_ENERGY;
-            let lastRefill = localStorage.getItem('lastRefill') || Date.now();
-
-            energy = parseInt(energy);
-            lastRefill = parseInt(lastRefill);
-
-            const now = Date.now();
-            const timePassed = now - lastRefill;
-            const refills = Math.floor(timePassed / REFILL_TIME);
-
-            if (energy < MAX_ENERGY && refills > 0) {
-                energy = Math.min(MAX_ENERGY, energy + refills);
-                lastRefill = now - (timePassed % REFILL_TIME);
-            }
-
-            // Display energy as ⚡️ icons
-            energyDisplay.textContent = '⚡️'.repeat(energy);
-
-            // Hide cooldown if energy is full
-            if (energy === MAX_ENERGY) {
-                cooldown.style.display = 'none';
-            } else {
-                const nextRefill = REFILL_TIME - (now - lastRefill);
-                const minutes = Math.floor(nextRefill / 60000);
-                const seconds = Math.floor((nextRefill % 60000) / 1000);
-                cooldown.textContent = `Next refill in: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                cooldown.style.display = 'block';
-            }
-            
-            // Update localStorage
-            localStorage.setItem('energy', energy);
-            localStorage.setItem('lastRefill', lastRefill);
+        // Fetch current tile type from the map (randomly generated)
+        const randomType = Math.random();
+        let tileType;
+        if (randomType < 0.25) {
+            tileType = 'city';
+        } else if (randomType < 0.5) {
+            tileType = 'forest';
+        } else if (randomType < 0.75) {
+            tileType = 'lake';
+        } else {
+            tileType = 'field';
         }
 
-        setInterval(updateEnergy, 1000); // Update every second for countdown
-        updateEnergy(); 
+        localStorage.setItem('currentTileType', tileType); // Store tile type
+        updateBackground(tileType); // Update background color
+    }
 
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-</body>
-</html>
+    // Load background on home tab load
+    const currentTile = localStorage.getItem('currentTileType') || 'city';
+    updateBackground(currentTile);
+</script>
