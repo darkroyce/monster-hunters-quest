@@ -18,27 +18,34 @@
             flex-direction: column;
         }
 
-        /* Logo container at the top */
-        .logo-container {
-            text-align: center;
-            padding: 10px;
+        /* Header containing the logo */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             background-color: var(--tg-theme-bg-color);
             border-bottom: 1px solid #ccc;
+            height: 60px; /* Same size as bottom nav */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
         }
 
-        .logo-container img {
-            width: 60px; /* Adjust size as needed */
+        .header img {
+            width: 50px;
             height: auto;
         }
 
-        /* Main content should fill the viewport minus the menu */
+        /* Main content should fill the viewport minus the header and the bottom menu */
         main {
             flex: 1;
+            padding-top: 60px; /* Header height */
+            padding-bottom: 60px; /* Bottom nav height */
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 10px;
         }
 
         /* Bottom navigation menu */
@@ -49,16 +56,18 @@
             background-color: var(--tg-theme-bg-color);
             border-top: 1px solid #ccc;
             padding: 15px 0;
+            height: 60px; /* Fixed height */
             position: fixed;
             width: 100%;
             bottom: 0;
+            z-index: 1000;
         }
 
         .bottom-nav button {
             background-color: transparent;
             border: none;
             color: var(--tg-theme-link-color);
-            font-size: 24px; /* Increased size for emojis */
+            font-size: 24px; /* Emoji size */
             cursor: pointer;
         }
 
@@ -81,8 +90,8 @@
 
 <body>
 
-    <!-- Logo Placeholder -->
-    <div class="logo-container">
+    <!-- Header containing the logo -->
+    <div class="header">
         <img src="./assets/tapps.png" alt="Logo Placeholder">
     </div>
 
