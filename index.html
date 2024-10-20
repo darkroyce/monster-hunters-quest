@@ -16,155 +16,69 @@
             color-scheme: var(--tg-color-scheme);
         }
 
-        /* Main content should fill the viewport minus the bottom menu */
-        main {
-            height: calc(100vh - 60px); /* Full height minus bottom nav */
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            overflow: auto; /* In case the content overflows */
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 5px;
+            padding: 20px;
         }
 
-        /* Content container for each tab */
-        .content-container {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
-            width: 100%;
-        }
-
-        /* Bottom navigation menu */
-        .bottom-nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background-color: var(--tg-theme-bg-color);
-            border-top: 1px solid #ccc;
-            height: 60px; /* Fixed height */
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            z-index: 1000;
-        }
-
-        .bottom-nav button {
-            background-color: transparent;
-            border: none;
-            color: var(--tg-theme-link-color);
-            font-size: 24px; /* Emoji size */
-            cursor: pointer;
-        }
-
-        .bottom-nav button:hover {
-            color: #000;
-        }
-
-        /* Map Placeholder */
-        .map-placeholder {
-            width: 100%;
-            height: 100%;
-            background-color: lightgray;
+        .tile {
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: #aaa; /* Unvisited tile color */
+            border: 1px solid #333;
         }
 
+        .tile.visited {
+            background-color: #fff; /* Visited tile color */
+        }
+
+        .tile.city {
+            background-color: #ffd700; /* City tile color */
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-buttons button {
+            padding: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
     </style>
 </head>
-
 <body>
+    <main>
+        <div id="game-board" class="game-grid">
+            <!-- 25 tiles will be dynamically generated here -->
+        </div>
 
-    <!-- Dynamic Content Area -->
-    <main id="content">
-        <!-- Dynamic content will be loaded here -->
+        <div class="nav-buttons">
+            <button id="up-btn">⬆️ Up</button>
+            <button id="down-btn">⬇️ Down</button>
+            <button id="left-btn">⬅️ Left</button>
+            <button id="right-btn">➡️ Right</button>
+        </div>
+
+        <div id="status">
+            <p>Energy: <span id="energy">10</span></p>
+            <p>Health: <span id="health">100</span></p>
+            <p>Gold: <span id="gold">50</span></p>
+        </div>
+
+        <button id="hunt-btn">Hunt</button>
     </main>
 
-    <!-- Bottom navigation menu using emojis -->
-    <div class="bottom-nav">
-        <button id="bag-btn" onclick="loadTab('bag')">👜</button>
-        <button id="home-btn" onclick="loadTab('home')">🏠</button>
-        <button id="map-btn" onclick="loadTab('map')">🗺️</button>
-    </div>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        // Initialize Telegram Web App
-        Telegram.WebApp.ready();
-
-        // Energy logic
-        const MAX_ENERGY = 10;
-        const REFILL_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
-
-        function updateEnergy() {
-            let energy = localStorage.getItem('energy') || MAX_ENERGY;
-            let lastRefill = localStorage.getItem('lastRefill') || Date.now();
-
-            energy = parseInt(energy);
-            lastRefill = parseInt(lastRefill);
-
-            const now = Date.now();
-            const timePassed = now - lastRefill;
-            const refills = Math.floor(timePassed / REFILL_TIME);
-
-            if (energy < MAX_ENERGY && refills > 0) {
-                energy = Math.min(MAX_ENERGY, energy + refills);
-                lastRefill = now - (timePassed % REFILL_TIME);
-            }
-
-            // Update the native Telegram label with emojis and save to localStorage
-            Telegram.WebApp.setHeaderColor('secondary_bg_color');
-            Telegram.WebApp.MainButton.hide(); // Hide the main button
-
-            Telegram.WebApp.BackButton.hide(); // Hide any back button
-
-            Telegram.WebApp.setTitle("MonsterHunterQuest");
-
-            Telegram.WebApp.setHeaderColor("#ffffff");
-            Telegram.WebApp.show();
-
-            const energyText = `⚡️ ${energy}/${MAX_ENERGY}`;
-            Telegram.WebApp.setRightButton({
-                text: energyText,
-                color: "#000000", // Adjust text color if needed
-                size: "large",
-                onClick: function() {
-                    // Optional action when the energy label is clicked
-                },
-            });
-
-            localStorage.setItem('energy', energy);
-            localStorage.setItem('lastRefill', lastRefill);
-        }
-
-        // Update energy display and refill logic
-        setInterval(updateEnergy, 60 * 1000); // Check every minute
-        updateEnergy(); // Initial energy update
-
-        // Function to load tab content dynamically
-        function loadTab(tabName) {
-            fetch(`${tabName}.html`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('File not found');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('content').innerHTML = data;
-                })
-                .catch(err => {
-                    document.getElementById('content').innerHTML = '<p>Tab not found</p>';
-                });
-        }
-
-        // Load the Home tab by default
-        loadTab('home');
-    </script>
-
-    <!-- Eruda dev tools (as per the template provided) -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+    <script src="game.js"></script>
 </body>
 </html>
