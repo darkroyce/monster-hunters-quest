@@ -6,20 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Monster Hunters Quest</title>
     <style>
-        body {
-            --bg-color: var(--tg-theme-bg-color);
-            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--tg-theme-text-color);
+        html, body {
             margin: 0;
             padding: 0;
-            height: 100vh;
+            height: 100%;
+            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            color-scheme: var(--tg-color-scheme);
             display: flex;
             flex-direction: column;
-            color-scheme: var(--tg-color-scheme);
         }
 
-        /* Main content */
+        /* Main content should fill the viewport minus the menu */
         main {
             flex: 1;
             display: flex;
@@ -35,7 +34,7 @@
             align-items: center;
             background-color: var(--tg-theme-bg-color);
             border-top: 1px solid #ccc;
-            padding: 20px 0; /* Increased size */
+            padding: 15px 0;
             position: fixed;
             width: 100%;
             bottom: 0;
@@ -65,12 +64,13 @@
         /* Map Placeholder */
         .map-placeholder {
             width: 100%;
-            height: 300px;
+            height: 100%;
             background-color: lightgray;
             display: flex;
             justify-content: center;
             align-items: center;
         }
+
     </style>
 </head>
 
