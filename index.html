@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,37 +16,27 @@
             color-scheme: var(--tg-color-scheme);
         }
 
-        /* Header containing the logo and energy counter */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--tg-theme-bg-color);
-            border-bottom: 1px solid #ccc;
-            height: 60px;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 0 15px;
-        }
-
-        .header img {
-            width: 50px;
-            height: auto;
-        }
-
-        /* Energy counter - aligned to the right with some padding */
-        .energy-counter {
-            font-size: 16px;
+        /* Energy icon and counter at the top center */
+        .energy-container {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
             color: var(--tg-theme-link-color);
-            padding-right: 10px;
-            white-space: nowrap;
+        }
+
+        .energy-icon {
+            font-size: 20px;
+            margin-right: 5px;
+        }
+
+        .cooldown {
+            font-size: 12px;
+            color: var(--tg-theme-text-color);
         }
 
         main {
-            height: calc(100vh - 120px);
-            padding-top: 10px;
+            height: calc(100vh - 60px);
+            padding-top: 20px;
             display: flex;
             flex-direction: column;
             overflow: auto;
@@ -101,9 +90,10 @@
 
 <body>
 
-    <div class="header">
-        <img src="./assets/tapps.png" alt="Logo Placeholder">
-        <div class="energy-counter" id="energy-counter">Energy: 10</div>
+    <!-- Energy ⚡️ at the top center -->
+    <div class="energy-container">
+        <span class="energy-icon">⚡️</span><span id="energy-counter">10</span>
+        <div class="cooldown" id="cooldown">Next refill in: 00:00</div>
     </div>
 
     <main id="content">
@@ -128,8 +118,9 @@
         loadTab('home');
 
         const MAX_ENERGY = 10;
-        const REFILL_TIME = 15 * 60 * 1000;
+        const REFILL_TIME = 15 * 60 * 1000; 
         const energyCounter = document.getElementById('energy-counter');
+        const cooldown = document.getElementById('cooldown');
 
         function updateEnergy() {
             let energy = localStorage.getItem('energy') || MAX_ENERGY;
@@ -147,13 +138,22 @@
                 lastRefill = now - (timePassed % REFILL_TIME);
             }
 
-            energyCounter.textContent = `Energy: ${energy}`;
+            // Calculate next refill time
+            const nextRefill = REFILL_TIME - (now - lastRefill);
+            const minutes = Math.floor(nextRefill / 60000);
+            const seconds = Math.floor((nextRefill % 60000) / 1000);
+
+            cooldown.textContent = `Next refill in: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Update energy display and save to localStorage
+            energyCounter.textContent = energy;
             localStorage.setItem('energy', energy);
             localStorage.setItem('lastRefill', lastRefill);
         }
 
-        setInterval(updateEnergy, 60 * 1000);
-        updateEnergy();
+        setInterval(updateEnergy, 1000); // Update every second for countdown
+        updateEnergy(); 
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
