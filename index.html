@@ -35,7 +35,7 @@
             align-items: center;
             background-color: var(--tg-theme-bg-color);
             border-top: 1px solid #ccc;
-            padding: 10px 0;
+            padding: 20px 0; /* Increased size */
             position: fixed;
             width: 100%;
             bottom: 0;
@@ -45,7 +45,7 @@
             background-color: transparent;
             border: none;
             color: var(--tg-theme-link-color);
-            font-size: 14px;
+            font-size: 24px; /* Increased size for emojis */
             cursor: pointer;
         }
 
@@ -97,11 +97,11 @@
         </div>
     </main>
 
-    <!-- Bottom navigation menu using Telegram buttons -->
+    <!-- Bottom navigation menu using emojis -->
     <div class="bottom-nav">
-        <button id="bag-btn" onclick="showTab('bag')">👜 Bag</button>
-        <button id="home-btn" onclick="showTab('home')">🏠 Home</button>
-        <button id="map-btn" onclick="showTab('map')">🗺️ Map</button>
+        <button id="bag-btn" onclick="showTab('bag')">👜</button>
+        <button id="home-btn" onclick="showTab('home')">🏠</button>
+        <button id="map-btn" onclick="showTab('map')">🗺️</button>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -117,17 +117,6 @@
 
             document.getElementById(tabName).classList.add('active');
         }
-
-        // Show main button using Telegram native components
-        Telegram.WebApp.MainButton.setParams({
-            text: 'Main Button',
-            color: Telegram.WebApp.themeParams.button_color,
-            text_color: Telegram.WebApp.themeParams.button_text_color
-        });
-        Telegram.WebApp.MainButton.onClick(function () {
-            Telegram.WebApp.showAlert('Main Button was clicked');
-        });
-        Telegram.WebApp.MainButton.show();
 
         // Dev tools: keep the existing ones
         Telegram.WebApp.onEvent('themeChanged', function() {
